@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+snapshots/
+records_cache.json
+build_log.txt
+preview_only.html

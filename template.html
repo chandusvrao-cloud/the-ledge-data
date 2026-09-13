@@ -1,0 +1,820 @@
+<title>The Ledge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --surface-2:#e9ebe4; --border:#d8dbd1;
+  --text:#161a15; --text-2:#535b4d; --text-3:#89907f;
+  --accent:#1f6f5c; --accent-ink:#ffffff; --accent-soft:rgba(31,111,92,0.10);
+  --up:#1a8f5a; --down:#c0392b; --amber:#b5822a;
+  --forming:#6b7a99; --fresh:#1a8f5a; --climbing:#1f6f5c; --played:#96917f;
+  --ma50:#3b6fd1; --ma200:#c2694a;
+  --shadow:0 1px 2px rgba(20,24,16,0.05), 0 6px 20px rgba(20,24,16,0.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c0f0d; --surface:#131712; --surface-2:#1a1f19; --border:#252b23;
+    --text:#e7ebe3; --text-2:#a3ab98; --text-3:#6c7466;
+    --accent:#3fbf9f; --accent-ink:#06120e; --accent-soft:rgba(63,191,159,0.13);
+    --up:#3fc582; --down:#e2685b; --amber:#d9a247;
+    --forming:#8a9ac2; --fresh:#3fc582; --climbing:#3fbf9f; --played:#7d7a68;
+    --ma50:#6f9bf0; --ma200:#e8926e;
+    --shadow:0 1px 2px rgba(0,0,0,0.35), 0 8px 26px rgba(0,0,0,0.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c0f0d; --surface:#131712; --surface-2:#1a1f19; --border:#252b23;
+  --text:#e7ebe3; --text-2:#a3ab98; --text-3:#6c7466;
+  --accent:#3fbf9f; --accent-ink:#06120e; --accent-soft:rgba(63,191,159,0.13);
+  --up:#3fc582; --down:#e2685b; --amber:#d9a247;
+  --forming:#8a9ac2; --fresh:#3fc582; --climbing:#3fbf9f; --played:#7d7a68;
+  --ma50:#6f9bf0; --ma200:#e8926e;
+  --shadow:0 1px 2px rgba(0,0,0,0.35), 0 8px 26px rgba(0,0,0,0.4);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Manrope,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 20px 56px;}
+
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:18px;}
+.brand{display:flex;flex-direction:column;gap:2px;}
+.brand-name{font-weight:800;font-size:21px;letter-spacing:-0.01em;}
+.brand-sub{font-size:11.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;}
+.as-of{margin-left:auto;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:8px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--up);}
+#theme-toggle{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:14px;}
+
+.screen-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.screen-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-weight:600;font-size:12.5px;padding:8px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:7px;}
+.screen-tab.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.screen-tab.soon{cursor:default;opacity:0.55;}
+.screen-tab .badge{font-size:9.5px;background:var(--surface-2);color:var(--text-3);padding:1px 6px;border-radius:5px;font-weight:700;letter-spacing:0.03em;}
+.screen-tab.active .badge{background:rgba(255,255,255,0.22);color:var(--accent-ink);}
+
+.method-line{font-size:12px;color:var(--text-3);margin:-10px 0 20px;}
+.method-line b{color:var(--text-2);}
+
+.changes-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:-8px 0 18px;overflow:hidden;}
+.changes-head{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);}
+.changes-title{font-size:12px;font-weight:700;}
+.changes-title #changes-range{font-weight:500;color:var(--text-3);}
+.changes-toggle{margin-left:auto;border:none;background:none;color:var(--accent);font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;}
+.changes-list{display:flex;flex-direction:column;}
+.changes-row{display:flex;align-items:baseline;gap:8px;padding:7px 14px;font-size:12px;border-bottom:1px solid var(--grid,var(--border));}
+.changes-row:last-child{border-bottom:none;}
+.changes-row .csym{font-weight:700;cursor:pointer;}
+.changes-row .csym:hover{color:var(--accent);}
+.changes-badge{font-size:9px;text-transform:uppercase;letter-spacing:0.03em;padding:1px 5px;border-radius:4px;font-weight:700;flex-shrink:0;}
+.changes-badge.in{background:var(--win-bg,rgba(31,111,92,0.12));color:var(--fresh);}
+.changes-badge.out{background:var(--loss-bg,rgba(192,57,43,0.10));color:var(--down);}
+.changes-badge.move{background:var(--surface-2);color:var(--text-2);}
+.changes-meta{margin-left:auto;color:var(--text-3);font-size:11px;flex-shrink:0;font-family:"IBM Plex Mono",monospace;}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 16px 14px;cursor:pointer;text-align:left;box-shadow:var(--shadow);}
+.tile[aria-pressed="true"]{border-color:var(--stage-color);box-shadow:0 0 0 2px var(--stage-color) inset, var(--shadow);}
+.tile-n{font-size:28px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--stage-color);}
+.tile-label{font-size:13px;font-weight:700;margin-top:2px;}
+.tile-desc{font-size:11.5px;color:var(--text-3);margin-top:2px;}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
+.panel-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.panel-title{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px;}
+.panel-title .swatch{width:9px;height:9px;border-radius:3px;background:var(--stage-color);}
+#search{margin-left:auto;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:6px 10px;font:inherit;font-size:12.5px;width:160px;}
+#search::placeholder{color:var(--text-3);}
+
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:720px;}
+th{position:sticky;top:0;background:var(--surface);text-align:right;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-3);font-weight:700;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;}
+th:first-child,td:first-child{text-align:left;}
+th.sorted{color:var(--accent);}
+td{padding:9px 12px;text-align:right;font-size:12.5px;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr:hover{background:var(--surface-2);}
+.sym{font-weight:700;font-size:12.5px;}
+.pct-pos{color:var(--up);}
+.pct-neg{color:var(--down);}
+.dist-bar{display:inline-block;width:64px;height:6px;background:var(--surface-2);border-radius:3px;position:relative;vertical-align:middle;margin-left:8px;overflow:hidden;}
+.dist-bar i{position:absolute;top:0;bottom:0;background:var(--stage-color);}
+.rs-chip{display:inline-block;min-width:24px;padding:2px 6px;border-radius:5px;font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent);}
+.empty{padding:40px 16px;text-align:center;color:var(--text-3);font-size:13px;}
+
+.soon-panel{padding:44px 24px;text-align:center;color:var(--text-3);}
+.soon-panel .big{font-size:15px;color:var(--text-2);font-weight:700;margin-bottom:6px;}
+
+.brk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;padding:14px;}
+.brk-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden;cursor:pointer;}
+.brk-card:hover{border-color:var(--accent);}
+.brk-card-head{display:flex;align-items:baseline;gap:8px;padding:10px 12px 6px;flex-wrap:wrap;}
+.brk-sym{font-weight:800;font-size:14px;}
+.brk-screen-tag{font-size:9.5px;text-transform:uppercase;letter-spacing:0.04em;background:var(--surface-2);color:var(--text-3);padding:2px 6px;border-radius:5px;}
+.brk-price{margin-left:auto;font-size:13px;font-weight:700;}
+.brk-sub{padding:0 12px 6px;font-size:10.5px;color:var(--text-3);}
+.brk-chart{padding:0 8px;}
+.brk-chart canvas{width:100%;height:120px;display:block;}
+.brk-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 12px 12px;border-top:1px solid var(--border);margin-top:6px;}
+.brk-m-label{font-size:8.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.03em;}
+.brk-m-value{font-size:12px;font-weight:700;font-family:"IBM Plex Mono",monospace;}
+
+.sym-btn{font:inherit;font-weight:700;font-size:12.5px;background:none;border:none;color:var(--text);cursor:pointer;padding:0;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;}
+.sym-btn:hover{text-decoration-color:var(--accent);color:var(--accent);}
+.rs-chip.na{background:var(--surface-2);color:var(--text-3);}
+
+footer{margin-top:22px;font-size:11.5px;color:var(--text-3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,12,9,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;}
+.modal-backdrop[hidden]{display:none;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);max-width:640px;width:100%;max-height:88vh;overflow-y:auto;}
+.modal-head{display:flex;align-items:flex-start;gap:14px;padding:18px 20px 14px;border-bottom:1px solid var(--border);}
+.modal-sym{font-size:19px;font-weight:800;letter-spacing:-0.01em;}
+.modal-sub{font-size:12px;color:var(--text-3);margin-top:2px;}
+.modal-close{margin-left:auto;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px;}
+.modal-stats{display:flex;gap:20px;padding:14px 20px;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+.mstat{display:flex;flex-direction:column;gap:1px;}
+.mstat-label{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;}
+.mstat-value{font-size:14px;font-weight:700;}
+.chart-box{padding:12px 20px 4px;}
+.tf-toggle{display:flex;gap:6px;margin-bottom:10px;}
+.tf-btn{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);font:inherit;font-weight:600;font-size:11.5px;padding:5px 12px;border-radius:6px;cursor:pointer;}
+.tf-btn.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.chart-loading{padding:60px 0;text-align:center;color:var(--text-3);font-size:12.5px;}
+#chart-canvas{width:100%;height:220px;display:block;}
+.modal-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 20px 20px;flex-wrap:wrap;}
+.tv-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--accent-ink);background:var(--accent);padding:8px 14px;border-radius:8px;text-decoration:none;}
+.chart-note{font-size:11px;color:var(--text-3);}
+
+@media (max-width:760px){
+  .tiles{grid-template-columns:repeat(2,1fr);}
+  #search{width:100%;order:10;margin-left:0;}
+  .as-of{margin-left:0;width:100%;order:5;}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="brand-name">The Ledge</div>
+      <div class="brand-sub">Stage-2 base &amp; breakout screener &middot; NSE</div>
+    </div>
+    <div class="as-of"><span class="dot"></span><span id="as-of-text">Data through &mdash;</span></div>
+    <button id="theme-toggle" aria-label="Toggle theme">&#9681;</button>
+  </header>
+
+  <div class="screen-tabs" id="screen-tabs"></div>
+  <div class="method-line" id="method-line"></div>
+
+  <div class="changes-panel" id="changes-panel" hidden>
+    <div class="changes-head">
+      <span class="changes-title">What changed <span id="changes-range"></span></span>
+      <button class="changes-toggle" id="changes-toggle">Show all</button>
+    </div>
+    <div class="changes-list" id="changes-list"></div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><span class="swatch"></span><span id="panel-title-text">Forming</span></div>
+      <input id="search" type="text" placeholder="Filter symbol&hellip;" autocomplete="off">
+    </div>
+    <div class="table-wrap" id="table-wrap"></div>
+  </div>
+
+  <footer>
+    <span id="universe-line"></span>
+    <span>Pivot = highest unbroken high &ge; base length &middot; RS = 1&ndash;99 percentile, 12-month weighted quarters vs. universe</span>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-sym">
+    <div class="modal-head">
+      <div>
+        <div class="modal-sym" id="modal-sym"></div>
+        <div class="modal-sub" id="modal-sub"></div>
+      </div>
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-stats" id="modal-stats"></div>
+    <div class="chart-box">
+      <div class="tf-toggle" id="tf-toggle">
+        <button class="tf-btn active" data-tf="daily">Daily</button>
+        <button class="tf-btn" data-tf="weekly">Weekly</button>
+      </div>
+      <div id="chart-loading" class="chart-loading">Loading chart&hellip;</div>
+      <canvas id="chart-canvas" hidden></canvas>
+    </div>
+    <div class="modal-foot">
+      <span class="chart-note" id="chart-note"></span>
+      <a class="tv-link" id="tv-link" target="_blank" rel="noopener">Open on TradingView &#8599;</a>
+    </div>
+  </div>
+</div>
+
+<script id="screens-data" type="application/json">__SCREENS_DATA_JSON__</script>
+<script>
+const DATA = JSON.parse(document.getElementById('screens-data').textContent);
+
+const SCREENS = [
+  { key: 'multiyear', label: 'Multi-year breakouts', icon: '⏳', status: 'live',
+    method: 'Liquidity floor · 52+ week unbroken base · above a rising 200-DMA · RS 60+ · within 20% of pivot' },
+  { key: 'vcp', label: 'VCP', icon: '△', status: 'live',
+    method: 'Liquidity floor · 5+ week base, ≤50% deep · above 200-DMA · RS 60+ · 2+ shrinking pullbacks into the pivot · within 15%' },
+  { key: 'bluesky', label: 'Blue sky', icon: '☀', status: 'live',
+    method: 'Liquidity floor · pivot = all-time high · pullback ≤25% · RS 70+ · within 6% of the high — mostly "Forming" by nature: once cleared, a new all-time high resets the pivot to today' },
+  { key: 'ipobase', label: 'IPO base', icon: '★', status: 'live',
+    method: 'Listed within the last 2 years (proxy: first bhavcopy row) · liquidity floor · 10+ week base · within 25% of pivot · no RS/200-DMA gate — too little history yet' },
+  { key: 'poleflag', label: 'Pole & Flag', icon: '⚑', status: 'live',
+    method: 'Uptrend (close &gt; rising SMA50) · pole ≥15% in 3-10 sessions on ≥1.3× volume · flag: 5-15 session tight (≤12% range), low-volume (≤0.85×) pullback of ≤50% of the pole · within 12% of the pole high' },
+  { key: 'dma20', label: '20-DMA breakout', icon: '∿', status: 'live',
+    method: 'Close crosses above its 20-day SMA — the fastest, noisiest of the three; pivot is the moving average itself, not a fixed price' },
+  { key: 'dma50', label: '50-DMA breakout', icon: '∿', status: 'live',
+    method: 'Close crosses above its 50-day SMA — pivot is the moving average itself, not a fixed price' },
+  { key: 'dma200', label: '200-DMA breakout', icon: '∿', status: 'live',
+    method: 'Close crosses above its 200-day SMA — the slowest, most significant of the three; pivot is the moving average itself, not a fixed price' },
+  { key: 'wk52', label: '52-week high', icon: '◆', status: 'live',
+    method: 'Liquidity floor only — the broad, unfiltered "new highs" list · pivot = the highest high in the trailing ~252 sessions · within 8% of it — mostly "Forming" by nature, same reason as Blue sky: a stock making sequential new highs keeps resetting its own pivot to today' },
+  { key: 'recordprofit', label: 'Record Profit & Revenue', icon: '₹', status: 'live', unit: 'cr',
+    method: 'Liquidity floor only — latest reported quarter is a new high (screener.in\'s visible ~12-quarter/~3yr window, not necessarily since listing) for Net Profit and/or Sales' },
+  { key: 'breakoutrecord', label: 'Breakout Record', icon: '🔥', status: 'live', kind: 'feed',
+    method: 'Every "fresh breakout" (cleared its pivot in the last 5 sessions) from the quality-gated screens — Multi-year, VCP, Blue sky, IPO base, Pole & Flag, 52-week high — combined and sorted by breakout-day gain. DMA screens excluded here (unfiltered by design, would dominate with noise)' },
+];
+
+const DEFAULT_STAGES = [
+  { key: 'forming', label: 'Forming', desc: 'resting before a breakout', color: 'var(--forming)' },
+  { key: 'fresh_breakout', label: 'Fresh breakouts', desc: 'cleared the pivot in the last 5 sessions', color: 'var(--fresh)' },
+  { key: 'climbing', label: 'Climbing', desc: 'broke out earlier, still above pivot', color: 'var(--climbing)' },
+  { key: 'played_out', label: 'Played out', desc: 'broke out, has since faded', color: 'var(--played)' },
+];
+
+const RECORD_STAGES = [
+  { key: 'both', label: 'Both records', desc: 'Net Profit AND Revenue both at a new high', color: 'var(--fresh)' },
+  { key: 'profit_only', label: 'Profit record', desc: 'Net Profit at a new high, Revenue is not', color: 'var(--climbing)' },
+  { key: 'revenue_only', label: 'Revenue record', desc: 'Revenue at a new high, Net Profit is not', color: 'var(--forming)' },
+];
+
+function stagesFor(screen) {
+  return screen.key === 'recordprofit' ? RECORD_STAGES : DEFAULT_STAGES;
+}
+
+let currentScreen = SCREENS.find(s => s.status === 'live').key;
+let currentStage = 'forming';
+let sortKey = 'pct_from_pivot';
+let sortDir = 1;
+let filterText = '';
+
+function fmtNum(n, d) { return n.toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+function renderTabs() {
+  const el = document.getElementById('screen-tabs');
+  el.innerHTML = '';
+  SCREENS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'screen-tab' + (s.key === currentScreen ? ' active' : '') + (s.status === 'soon' ? ' soon' : '');
+    btn.innerHTML = `<span>${s.icon}</span><span>${s.label}</span>` + (s.status === 'soon' ? `<span class="badge">soon</span>` : '');
+    if (s.status === 'live') {
+      btn.onclick = () => { currentScreen = s.key; currentStage = stagesFor(s)[0].key; renderAll(); };
+    }
+    el.appendChild(btn);
+  });
+  document.getElementById('method-line').innerHTML = '<b>Filters:</b> ' + SCREENS.find(s => s.key === currentScreen).method;
+}
+
+function renderTiles() {
+  const el = document.getElementById('tiles');
+  el.innerHTML = '';
+  const screen = SCREENS.find(s => s.key === currentScreen);
+  if (screen.status === 'soon' || screen.kind === 'feed') { el.style.display = 'none'; return; }
+  el.style.display = 'grid';
+  const buckets = DATA.screens[currentScreen];
+  stagesFor(screen).forEach(st => {
+    const rows = buckets[st.key] || [];
+    const tile = document.createElement('button');
+    tile.className = 'tile';
+    tile.style.setProperty('--stage-color', st.color);
+    tile.setAttribute('aria-pressed', st.key === currentStage);
+    tile.innerHTML = `<div class="tile-n">${rows.length}</div><div class="tile-label">${st.label}</div><div class="tile-desc">${st.desc}</div>`;
+    tile.onclick = () => { currentStage = st.key; renderTable(); renderTiles(); };
+    el.appendChild(tile);
+  });
+}
+
+function renderTable() {
+  const screen = SCREENS.find(s => s.key === currentScreen);
+  const wrap = document.getElementById('table-wrap');
+  if (screen.kind === 'feed') {
+    document.getElementById('panel-title-text').textContent = 'Every fresh breakout, all screens';
+    document.querySelector('.panel-title .swatch').style.background = 'var(--fresh)';
+    document.getElementById('search').style.display = '';
+    renderBreakoutRecord(wrap);
+    return;
+  }
+  if (screen.status === 'soon') {
+    wrap.innerHTML = `<div class="soon-panel"><div class="big">${screen.label} isn't wired up yet</div>This screen is next in line — the engine (universe, RS rating, 200-DMA) is already shared and ready.</div>`;
+    document.getElementById('panel-title-text').textContent = screen.label;
+    document.querySelector('.panel-title .swatch').style.background = 'var(--text-3)';
+    document.getElementById('search').style.display = 'none';
+    return;
+  }
+  document.getElementById('search').style.display = '';
+  const stage = stagesFor(screen).find(s => s.key === currentStage);
+  document.getElementById('panel-title-text').textContent = stage.label;
+  document.querySelector('.panel-title .swatch').style.background = stage.color;
+
+  let rows = (DATA.screens[currentScreen][currentStage] || []).slice();
+  if (filterText) rows = rows.filter(r => r.sym.toLowerCase().includes(filterText));
+  rows.sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir);
+
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty">No symbols currently in this bucket.</div>`;
+    return;
+  }
+
+  const isCr = screen.unit === 'cr';
+  const cols = [
+    { k: 'sym', label: 'Symbol', align: 'left' },
+    { k: 'close', label: isCr ? 'Latest ₹Cr' : 'Close', fmt: v => '₹' + fmtNum(v, 2) },
+    { k: 'pivot', label: isCr ? 'Prior Best ₹Cr' : 'Pivot', fmt: v => '₹' + fmtNum(v, 2) },
+    { k: 'pct_from_pivot', label: isCr ? '% vs prior' : '% from pivot', fmt: (v) => v },
+    { k: 'base_weeks', label: 'Base (wks)', fmt: v => fmtNum(v, 0) },
+    { k: 'base_depth_pct', label: 'Depth %', fmt: v => fmtNum(v, 0) + '%' },
+    { k: 'rs', label: 'RS', fmt: v => v },
+    { k: 'avg_turnover_cr', label: 'Turnover ₹Cr/d', fmt: v => fmtNum(v, 1) },
+  ];
+
+  let html = '<table><thead><tr>';
+  cols.forEach(c => {
+    html += `<th data-k="${c.k}" style="text-align:${c.align || 'right'}" class="${sortKey === c.k ? 'sorted' : ''}">${c.label}${sortKey === c.k ? (sortDir === 1 ? ' ↑' : ' ↓') : ''}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  const maxAbsPct = Math.max(20, ...rows.map(r => Math.abs(r.pct_from_pivot)));
+  rows.forEach((r, i) => {
+    const pctCls = r.pct_from_pivot >= 0 ? 'pct-pos' : 'pct-neg';
+    const barW = Math.min(100, Math.abs(r.pct_from_pivot) / maxAbsPct * 100);
+    const rsCell = r.rs === null ? '<span class="rs-chip na">&mdash;</span>' : `<span class="rs-chip">${r.rs}</span>`;
+    const wksCell = r.base_weeks === null ? '&mdash;' : fmtNum(r.base_weeks, 0);
+    const depthCell = r.base_depth_pct === null ? '&mdash;' : fmtNum(r.base_depth_pct, 0) + '%';
+    html += `<tr>
+      <td class="sym"><button class="sym-btn" data-idx="${i}">${r.sym}</button></td>
+      <td class="mono">₹${fmtNum(r.close, r.close >= 1000 ? 0 : 2)}</td>
+      <td class="mono">₹${fmtNum(r.pivot, r.pivot >= 1000 ? 0 : 2)}</td>
+      <td class="mono ${pctCls}">${r.pct_from_pivot >= 0 ? '+' : ''}${fmtNum(r.pct_from_pivot, 1)}%<span class="dist-bar"><i style="left:${r.pct_from_pivot >= 0 ? 50 : 50 - barW}%;width:${barW / 2}%;background:${r.pct_from_pivot >= 0 ? 'var(--up)' : 'var(--down)'}"></i></span></td>
+      <td class="mono">${wksCell}</td>
+      <td class="mono">${depthCell}</td>
+      <td>${rsCell}</td>
+      <td class="mono">${fmtNum(r.avg_turnover_cr, 1)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('th').forEach(th => {
+    th.onclick = () => {
+      const k = th.dataset.k;
+      if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+      renderTable();
+    };
+  });
+  wrap.querySelectorAll('.sym-btn').forEach(btn => {
+    btn.onclick = () => openChart(rows[Number(btn.dataset.idx)], currentScreen);
+  });
+}
+
+function renderBreakoutRecord(wrap) {
+  // DMA screens are intentionally unfiltered/noisy (no RS gate) — excluded here
+  // so the feed stays a "quality breakouts" record, not dominated by DMA churn
+  const EXCLUDED = new Set(['recordprofit', 'dma20', 'dma50', 'dma200']);
+  let hits = [];
+  SCREENS.forEach(s => {
+    if (s.kind === 'feed' || EXCLUDED.has(s.key)) return;
+    const rows = (DATA.screens[s.key] || {}).fresh_breakout || [];
+    rows.forEach(r => hits.push(Object.assign({ _screen: s.key, _screenLabel: s.label }, r)));
+  });
+  if (filterText) hits = hits.filter(r => r.sym.toLowerCase().includes(filterText));
+  hits.sort((a, b) => (b.breakout_day_gain_pct ?? -999) - (a.breakout_day_gain_pct ?? -999));
+
+  if (!hits.length) {
+    wrap.innerHTML = `<div class="empty">No fresh breakouts across any screen right now.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `<div class="brk-grid">${hits.map((r, i) => `
+    <div class="brk-card" data-idx="${i}">
+      <div class="brk-card-head">
+        <span class="brk-sym">${r.sym}</span>
+        <span class="brk-screen-tag">${r._screenLabel}</span>
+        <span class="brk-price mono ${(r.one_day_gain_pct ?? 0) >= 0 ? 'pct-pos' : 'pct-neg'}">₹${fmtNum(r.close, r.close >= 1000 ? 0 : 2)} ${r.one_day_gain_pct !== null ? (r.one_day_gain_pct >= 0 ? '+' : '') + fmtNum(r.one_day_gain_pct, 1) + '%' : ''}</span>
+      </div>
+      <div class="brk-sub">Broke out ${r.breakout_date || r.pivot_date} · RS ${r.rs === null ? '—' : r.rs}</div>
+      <div class="brk-chart"><canvas id="brk-canvas-${i}"></canvas></div>
+      <div class="brk-metrics">
+        <div><div class="brk-m-label">Breakout-day gain</div><div class="brk-m-value">${r.breakout_day_gain_pct !== null && r.breakout_day_gain_pct !== undefined ? (r.breakout_day_gain_pct >= 0 ? '+' : '') + fmtNum(r.breakout_day_gain_pct, 1) + '%' : '—'}</div></div>
+        <div><div class="brk-m-label">Now vs pivot</div><div class="brk-m-value">${(r.pct_from_pivot >= 0 ? '+' : '') + fmtNum(r.pct_from_pivot, 1)}%</div></div>
+        <div><div class="brk-m-label">Breakout vol ×</div><div class="brk-m-value">${r.breakout_vol_ratio !== null && r.breakout_vol_ratio !== undefined ? fmtNum(r.breakout_vol_ratio, 1) + '×' : '—'}</div></div>
+        <div><div class="brk-m-label">Close-in-range</div><div class="brk-m-value">${r.breakout_close_in_range !== null && r.breakout_close_in_range !== undefined ? fmtNum(r.breakout_close_in_range, 2) : '—'}</div></div>
+        <div><div class="brk-m-label">vs 50-MA</div><div class="brk-m-value">${r.price_vs_50ma_pct !== null && r.price_vs_50ma_pct !== undefined ? (r.price_vs_50ma_pct >= 0 ? '+' : '') + fmtNum(r.price_vs_50ma_pct, 1) + '%' : '—'}</div></div>
+        <div><div class="brk-m-label">RS</div><div class="brk-m-value">${r.rs === null ? '—' : r.rs}</div></div>
+        <div><div class="brk-m-label">Turnover ₹Cr/d</div><div class="brk-m-value">${fmtNum(r.avg_turnover_cr, 1)}</div></div>
+        <div><div class="brk-m-label">Base (wks)</div><div class="brk-m-value">${r.base_weeks === null ? '—' : fmtNum(r.base_weeks, 0)}</div></div>
+      </div>
+    </div>`).join('')}</div>`;
+
+  wrap.querySelectorAll('.brk-card').forEach(card => {
+    const r = hits[Number(card.dataset.idx)];
+    card.onclick = () => openChart(r, r._screen);
+  });
+
+  const screensNeeded = [...new Set(hits.map(h => h._screen))];
+  Promise.all(screensNeeded.map(sk => getChartMap(sk).then(map => [sk, map]))).then(pairs => {
+    const mapByScreen = Object.fromEntries(pairs);
+    hits.forEach((r, i) => {
+      const chart = (mapByScreen[r._screen] || {})[r.sym];
+      if (!chart) return;
+      const canvas = document.getElementById(`brk-canvas-${i}`);
+      if (!canvas) return;
+      const ohlc = chart.daily;
+      const mas = [];
+      if (chart.ma50) mas.push({ line: chart.ma50, color: cssVar('--ma50') });
+      if (chart.ma200) mas.push({ line: chart.ma200, color: cssVar('--ma200') });
+      if (chart.ma_extra) mas.push({ line: chart.ma_extra.line, color: cssVar('--climbing') });
+      drawChart(canvas, ohlc, {
+        pivot: chart.pivot, breakoutOffset: chart.breakout_offset_daily, mas,
+        baseWeeks: chart.base_weeks, unitLabel: 'd', hoverI: null,
+        height: 120, compact: true,
+      });
+    });
+  }).catch(() => {});
+}
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// Chart data ships in separate per-screen files (charts_<screen>.json), fetched
+// lazily on first click and cached — embedding it in the main page pushed
+// output.html past the 16MB artifact limit once the DMA screens (1000+ hits
+// each) got their own charts too.
+const chartCache = {};
+function getChartMap(screenKey) {
+  if (!chartCache[screenKey]) {
+    chartCache[screenKey] = fetch(`charts_${screenKey}.json`).then(r => {
+      if (!r.ok) throw new Error('fetch failed: ' + r.status);
+      return r.json();
+    });
+  }
+  return chartCache[screenKey];
+}
+
+let currentTf = 'daily';
+let activeChart = null; // { chart, rec }
+let chartGeom = null;   // scale info from the last draw, used by the crosshair hit-test
+let hoverIdx = null;
+
+function drawChart(canvas, ohlc, opts) {
+  const { pivot, breakoutOffset, mas, baseWeeks, unitLabel, hoverI, height, compact } = opts;
+  const n = ohlc.c.length;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.getBoundingClientRect().width || canvas.clientWidth;
+  const cssH = height || 220;
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const padL = compact ? 4 : 56, padR = compact ? 4 : 46, padT = compact ? 4 : 14, padB = compact ? 4 : 22;
+  const plotW = cssW - padL - padR, plotH = cssH - padT - padB;
+
+  const maValues = mas.flatMap(m => m.line.filter(v => v !== null));
+  const allHighs = ohlc.h.concat(pivot != null ? [pivot] : []).concat(maValues);
+  const allLows = ohlc.l.concat(pivot != null ? [pivot] : []).concat(maValues);
+  const vMin = Math.min(...allLows), vMax = Math.max(...allHighs);
+  const pad = (vMax - vMin) * 0.08 || 1;
+  const lo = vMin - pad, hi = vMax + pad;
+  const x = i => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
+  const y = v => padT + (1 - (v - lo) / (hi - lo)) * plotH;
+
+  const text3 = cssVar('--text-3'), border = cssVar('--border'), accent = cssVar('--accent');
+  const up = cssVar('--up'), down = cssVar('--down'), amber = cssVar('--amber'), surface2 = cssVar('--surface-2');
+
+  // base region shading (from the pivot date, x=0, to the breakout — or the
+  // full width if it's still forming) with a duration label, same idea as
+  // BananaPatterns' gray "N wks" boxes
+  if (baseWeeks !== null && baseWeeks !== undefined) {
+    const endX = (breakoutOffset !== null && breakoutOffset !== undefined) ? x(breakoutOffset) : (cssW - padR);
+    ctx.fillStyle = surface2;
+    ctx.fillRect(padL, padT, endX - padL, plotH);
+    if (!compact) {
+      ctx.fillStyle = text3; ctx.font = '10px "IBM Plex Mono",monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(`${baseWeeks} wks`, (padL + endX) / 2, padT + 2);
+    }
+  }
+
+  if (!compact) {
+    ctx.strokeStyle = border; ctx.lineWidth = 1; ctx.font = '10px "IBM Plex Mono",monospace'; ctx.fillStyle = text3;
+    [0, 0.5, 1].forEach(f => {
+      const v = lo + f * (hi - lo);
+      const yy = y(v);
+      ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(cssW - padR, yy); ctx.stroke();
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText('₹' + Math.round(v).toLocaleString('en-IN'), padL - 8, yy);
+    });
+  }
+
+  mas.forEach(m => {
+    ctx.beginPath();
+    let started = false;
+    m.line.forEach((v, i) => {
+      if (v === null) return;
+      const px = x(i), pyv = y(v);
+      if (!started) { ctx.moveTo(px, pyv); started = true; } else ctx.lineTo(px, pyv);
+    });
+    ctx.strokeStyle = m.color; ctx.lineWidth = 1.4; ctx.stroke();
+  });
+
+  if (pivot != null) {
+    const py = y(pivot);
+    ctx.save();
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = amber; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(padL, py); ctx.lineTo(cssW - padR, py); ctx.stroke();
+    ctx.restore();
+    if (!compact) {
+      ctx.fillStyle = amber; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+      ctx.fillText('pivot', padL + 4, py - 3);
+    }
+  }
+
+  if (breakoutOffset !== null && breakoutOffset !== undefined && breakoutOffset >= 0 && breakoutOffset < n) {
+    const bx = x(breakoutOffset);
+    ctx.save();
+    ctx.setLineDash([2, 3]);
+    ctx.strokeStyle = text3; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(bx, padT); ctx.lineTo(bx, cssH - padB); ctx.stroke();
+    ctx.restore();
+  }
+
+  // candlesticks
+  const bw = Math.max(1.5, Math.min(10, (plotW / n) * 0.62));
+  for (let i = 0; i < n; i++) {
+    const o = ohlc.o[i], h = ohlc.h[i], l = ohlc.l[i], c = ohlc.c[i];
+    const isUp = c >= o;
+    const col = isUp ? up : down;
+    const cx = x(i);
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx, y(h)); ctx.lineTo(cx, y(l)); ctx.stroke();
+    const top = y(Math.max(o, c)), bot = y(Math.min(o, c));
+    ctx.fillRect(cx - bw / 2, top, bw, Math.max(1, bot - top));
+  }
+
+  // live price tag pinned to the right edge
+  if (!compact) {
+    const lastClose = ohlc.c[n - 1];
+    const priceUp = n < 2 || lastClose >= ohlc.c[n - 2];
+    const tagY = Math.max(padT + 8, Math.min(cssH - padB - 8, y(lastClose)));
+    const tagColor = priceUp ? up : down;
+    const tagLabel = fmtNum(lastClose, lastClose >= 1000 ? 0 : 2);
+    ctx.font = 'bold 10.5px "IBM Plex Mono",monospace';
+    const tagW = ctx.measureText(tagLabel).width + 10;
+    ctx.fillStyle = tagColor;
+    ctx.fillRect(cssW - padR + 3, tagY - 8, tagW, 16);
+    ctx.fillStyle = cssVar('--accent-ink'); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(tagLabel, cssW - padR + 8, tagY + 1);
+
+    ctx.fillStyle = text3; ctx.font = '10px "IBM Plex Mono",monospace'; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText(`${n - 1}${unitLabel} ago`, padL, cssH - padB + 6);
+    ctx.textAlign = 'right'; ctx.fillText('today', cssW - padR, cssH - padB + 6);
+  }
+
+  // crosshair + OHLC+volume readout on hover
+  if (!compact && hoverI !== null && hoverI !== undefined && hoverI >= 0 && hoverI < n) {
+    const hx = x(hoverI);
+    const o = ohlc.o[hoverI], h = ohlc.h[hoverI], l = ohlc.l[hoverI], c = ohlc.c[hoverI];
+    const v = ohlc.v ? ohlc.v[hoverI] : null;
+    ctx.save();
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = text3; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(hx, padT); ctx.lineTo(hx, cssH - padB); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, y(c)); ctx.lineTo(cssW - padR, y(c)); ctx.stroke();
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(hx, y(c), 3, 0, Math.PI * 2);
+    ctx.fillStyle = accent; ctx.fill();
+
+    const fmt = val => '₹' + val.toLocaleString('en-IN', { minimumFractionDigits: val >= 1000 ? 0 : 2, maximumFractionDigits: val >= 1000 ? 0 : 2 });
+    const volTxt = v !== null ? `   Vol ${v >= 1e7 ? (v / 1e7).toFixed(1) + 'Cr' : v >= 1e5 ? (v / 1e5).toFixed(1) + 'L' : v.toLocaleString('en-IN')}` : '';
+    const label = `O ${fmt(o)}   H ${fmt(h)}   L ${fmt(l)}   C ${fmt(c)}${volTxt}   (${n - 1 - hoverI}${unitLabel} ago)`;
+    ctx.font = '11px "IBM Plex Mono",monospace';
+    const boxW = ctx.measureText(label).width + 16;
+    let boxX = hx - boxW / 2;
+    boxX = Math.max(padL, Math.min(cssW - padR - boxW, boxX));
+    const surface = cssVar('--surface'), borderC = cssVar('--border');
+    ctx.fillStyle = surface; ctx.strokeStyle = borderC; ctx.lineWidth = 1;
+    ctx.fillRect(boxX, 1, boxW, 18);
+    ctx.strokeRect(boxX, 1, boxW, 18);
+    ctx.fillStyle = cssVar('--text'); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, boxX + 8, 10);
+  }
+
+  return { x, y, padL, padR, padT, padB, cssW, cssH, n };
+}
+
+function renderActiveChart(hi) {
+  if (!activeChart) return;
+  hoverIdx = hi !== undefined ? hi : hoverIdx;
+  const { chart, rec } = activeChart;
+  const canvas = document.getElementById('chart-canvas');
+  const tf = currentTf;
+  const ohlc = chart[tf];
+  const breakoutOffset = tf === 'daily' ? chart.breakout_offset_daily : chart.breakout_offset_weekly;
+  const unitLabel = tf === 'daily' ? 'd' : 'w';
+
+  const mas = [];
+  if (tf === 'daily') {
+    if (chart.ma50) mas.push({ line: chart.ma50, color: cssVar('--ma50'), label: '50' });
+    if (chart.ma200) mas.push({ line: chart.ma200, color: cssVar('--ma200'), label: '200' });
+    if (chart.ma_extra) mas.push({ line: chart.ma_extra.line, color: cssVar('--climbing'), label: String(chart.ma_extra.window) });
+  }
+  const legend = mas.length ? '  ·  MA: ' + mas.map(m => m.label).join('/') : '';
+  document.getElementById('chart-note').textContent =
+    `${tf === 'daily' ? 'Daily' : 'Weekly'} candles from the pivot date forward (${ohlc.c.length} bars)${legend} — hover for OHLC+volume, open on TradingView for live indicators.`;
+  chartGeom = drawChart(canvas, ohlc, {
+    pivot: chart.pivot, breakoutOffset, mas, baseWeeks: chart.base_weeks,
+    unitLabel, hoverI: hoverIdx,
+  });
+}
+
+document.querySelectorAll('.tf-btn').forEach(btn => {
+  btn.onclick = () => {
+    currentTf = btn.dataset.tf;
+    document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b === btn));
+    hoverIdx = null;
+    renderActiveChart();
+  };
+});
+
+const chartCanvasEl = document.getElementById('chart-canvas');
+chartCanvasEl.addEventListener('mousemove', (e) => {
+  if (!chartGeom) return;
+  const rect = chartCanvasEl.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const { padL, padR, cssW, n } = chartGeom;
+  const plotW = cssW - padL - padR;
+  let idx = Math.round(((mx - padL) / plotW) * (n - 1));
+  idx = Math.max(0, Math.min(n - 1, idx));
+  renderActiveChart(idx);
+});
+chartCanvasEl.addEventListener('mouseleave', () => renderActiveChart(null));
+
+async function openChart(rec, screenKey) {
+  const isRecordScreen = screenKey === 'recordprofit';
+  document.getElementById('modal-sym').textContent = rec.sym;
+
+  if (isRecordScreen) {
+    document.getElementById('modal-sub').textContent = `Quarter ended ${rec.pivot_date} · ${rec.stage.replace('_', ' ')}`;
+    const fmtCr = v => v === null ? '—' : '₹' + fmtNum(v, 0) + 'Cr';
+    const stats = [
+      ['Net Profit', fmtCr(rec.net_profit_latest) + (rec.net_profit_is_record ? ' 🏆' : '')],
+      ['Prior best (NP)', fmtCr(rec.net_profit_prior_best) + (rec.net_profit_prior_period ? ` (${rec.net_profit_prior_period})` : '')],
+      ['Revenue', fmtCr(rec.revenue_latest) + (rec.revenue_is_record ? ' 🏆' : '')],
+      ['Prior best (Rev)', fmtCr(rec.revenue_prior_best) + (rec.revenue_prior_period ? ` (${rec.revenue_prior_period})` : '')],
+      ['RS', rec.rs === null ? '—' : rec.rs],
+      ['Turnover ₹Cr/d', fmtNum(rec.avg_turnover_cr, 1)],
+    ];
+    document.getElementById('modal-stats').innerHTML = stats.map(([l, v]) =>
+      `<div class="mstat"><span class="mstat-label">${l}</span><span class="mstat-value mono">${v}</span></div>`).join('');
+  } else {
+    document.getElementById('modal-sub').textContent =
+      `Pivot set ${rec.pivot_date}${rec.base_weeks !== null ? ' · ' + rec.base_weeks + 'wk base' : ''} · ${rec.stage.replace('_', ' ')}`;
+    const stats = [
+      ['Close', '₹' + fmtNum(rec.close, rec.close >= 1000 ? 0 : 2)],
+      ['Pivot', '₹' + fmtNum(rec.pivot, rec.pivot >= 1000 ? 0 : 2)],
+      ['% from pivot', (rec.pct_from_pivot >= 0 ? '+' : '') + fmtNum(rec.pct_from_pivot, 1) + '%'],
+      ['Base depth', rec.base_depth_pct === null ? '—' : fmtNum(rec.base_depth_pct, 0) + '%'],
+      ['RS', rec.rs === null ? '—' : rec.rs],
+      ['Turnover ₹Cr/d', fmtNum(rec.avg_turnover_cr, 1)],
+    ];
+    document.getElementById('modal-stats').innerHTML = stats.map(([l, v]) =>
+      `<div class="mstat"><span class="mstat-label">${l}</span><span class="mstat-value mono">${v}</span></div>`).join('');
+  }
+  document.getElementById('tv-link').href = `https://www.tradingview.com/chart/?symbol=NSE%3A${encodeURIComponent(rec.sym)}`;
+
+  currentTf = 'daily';
+  hoverIdx = null;
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.dataset.tf === 'daily'));
+  document.getElementById('chart-canvas').hidden = true;
+  document.getElementById('chart-loading').hidden = false;
+  document.getElementById('chart-loading').textContent = 'Loading chart…';
+  document.getElementById('chart-note').textContent = '';
+  document.getElementById('modal-backdrop').hidden = false;
+
+  try {
+    const map = await getChartMap(screenKey);
+    const chart = map[rec.sym];
+    if (!chart) throw new Error('no chart data for ' + rec.sym);
+    activeChart = { chart, rec };
+    document.getElementById('chart-loading').hidden = true;
+    document.getElementById('chart-canvas').hidden = false;
+    requestAnimationFrame(renderActiveChart);
+  } catch (err) {
+    document.getElementById('chart-loading').textContent = "Couldn't load the chart data for this stock.";
+  }
+}
+
+function closeChart() { document.getElementById('modal-backdrop').hidden = true; activeChart = null; }
+document.getElementById('modal-close').onclick = closeChart;
+document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-backdrop') closeChart();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !document.getElementById('modal-backdrop').hidden) closeChart();
+});
+
+let changesExpanded = false;
+
+function renderChangesPanel() {
+  const panel = document.getElementById('changes-panel');
+  const screen = SCREENS.find(s => s.key === currentScreen);
+  const events = (DATA.changes || {})[currentScreen];
+
+  if (screen.kind === 'feed' || !events) { panel.hidden = true; return; }
+
+  panel.hidden = false;
+  document.getElementById('changes-range').textContent =
+    DATA.changes_since ? `(${DATA.changes_since} → ${DATA.generated_for_date})` : '';
+
+  const stages = stagesFor(screen);
+  const stageLabel = k => (stages.find(s => s.key === k) || { label: k }).label;
+
+  const list = document.getElementById('changes-list');
+  const toggle = document.getElementById('changes-toggle');
+  if (!events.length) {
+    list.innerHTML = `<div class="changes-row" style="color:var(--text-3)">No changes since last close.</div>`;
+    toggle.hidden = true;
+    return;
+  }
+  toggle.hidden = events.length <= 6;
+  toggle.textContent = changesExpanded ? 'Show less' : `Show all ${events.length}`;
+  const shown = changesExpanded ? events : events.slice(0, 6);
+
+  list.innerHTML = shown.map(e => {
+    let badge, text;
+    if (e.type === 'entered') {
+      badge = `<span class="changes-badge in">New</span>`;
+      text = `<span class="csym" data-sym="${e.sym}">${e.sym}</span> entered ${stageLabel(e.to)}`;
+    } else if (e.type === 'moved') {
+      badge = `<span class="changes-badge move">Moved</span>`;
+      text = `<span class="csym" data-sym="${e.sym}">${e.sym}</span> moved from ${stageLabel(e.from)} to ${stageLabel(e.to)}`;
+    } else {
+      badge = `<span class="changes-badge out">Left</span>`;
+      text = `<span class="csym" data-sym="${e.sym}">${e.sym}</span> left the screen (was ${stageLabel(e.from)})`;
+    }
+    const meta = e.rs !== undefined && e.rs !== null ? `RS ${e.rs}${e.pct_from_pivot !== undefined && e.pct_from_pivot !== null ? ' · ' + (e.pct_from_pivot >= 0 ? '+' : '') + fmtNum(e.pct_from_pivot, 1) + '%' : ''}` : '';
+    return `<div class="changes-row">${badge}<span>${text}</span><span class="changes-meta">${meta}</span></div>`;
+  }).join('');
+
+  list.querySelectorAll('.csym').forEach(el => {
+    el.onclick = () => {
+      const sym = el.dataset.sym;
+      const rec = ['forming', 'fresh_breakout', 'climbing', 'played_out', 'both', 'profit_only', 'revenue_only']
+        .flatMap(st => (DATA.screens[currentScreen][st] || []))
+        .find(r => r.sym === sym);
+      if (rec) openChart(rec, currentScreen);
+    };
+  });
+}
+
+document.getElementById('changes-toggle').onclick = () => {
+  changesExpanded = !changesExpanded;
+  renderChangesPanel();
+};
+
+function renderAll() {
+  renderTabs();
+  changesExpanded = false;
+  renderChangesPanel();
+  renderTiles();
+  renderTable();
+  document.getElementById('as-of-text').textContent = 'Data through ' + DATA.generated_for_date;
+  const uni = DATA.universe_size ? `Universe: ${DATA.universe_size} liquid NSE names (≥₹500cr mcap, ≥₹5cr/day turnover)` : '';
+  document.getElementById('universe-line').textContent = uni;
+}
+
+document.getElementById('search').addEventListener('input', (e) => {
+  filterText = e.target.value.trim().toLowerCase();
+  renderTable();
+});
+
+const themeBtn = document.getElementById('theme-toggle');
+themeBtn.addEventListener('click', () => {
+  const root = document.documentElement;
+  const cur = root.getAttribute('data-theme');
+  const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const next = cur === 'dark' ? 'light' : cur === 'light' ? (sysDark ? 'dark' : 'light') : (sysDark ? 'light' : 'dark');
+  root.setAttribute('data-theme', next);
+});
+
+renderAll();
+</script>
