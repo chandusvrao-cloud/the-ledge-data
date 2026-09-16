@@ -1,5 +1,15 @@
 $py = "C:\opt\nse_gapbot\venv\Scripts\python.exe"
 $dir = "C:\home\ubuntu\pattern_screens"
+
+# Re-attempt the bhav/mcap downloads here too (both are idempotent -- they skip
+# dates already on disk) in case the shared 18:30/18:35 fleet-wide download
+# tasks ran before NSE had posted that day's bhavcopy. This gives a second,
+# later chance to catch up before building, without touching the shared
+# fleet-wide schedule those tasks run on (see project_the_ledge_screener memory,
+# 2026-09-16 update, for why this was added).
+& $py "C:\opt\nse_gapbot\download_bhav.py"
+& $py "C:\opt\nse_gapbot\download_mcap.py"
+
 & $py "$dir\build_screens.py"
 & $py "$dir\build_page.py"
 
